@@ -1,0 +1,13 @@
+[
+    {
+      "description": "Canary users get testing port",
+      "clauses": [
+        {
+          "attribute": "groups",
+          "op": "in",
+          "values": ["canary-testers"]
+        }
+      ],
+      "variation": 2
+    }
+  ]

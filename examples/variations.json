@@ -1,0 +1,17 @@
+[
+    {
+      "name": "Production Port",
+      "description": "Standard production port",
+      "value": { "tcp_port": 443 }
+    },
+    {
+      "name": "Development Port",
+      "description": "Alternative development port",
+      "value": { "tcp_port": 8080 }
+    },
+    {
+      "name": "Testing Port",
+      "description": "Testing environment port",
+      "value": { "tcp_port": 9000 }
+    }
+  ]

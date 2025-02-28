@@ -1,0 +1,71 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Create Flag",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/ld_json_flag/cli.py",
+            "args": [
+                "create",
+                "--api-key", "${env:LD_API_KEY}",
+                "--project-key", "default",
+                "--flag-key", "tcp-port-config",
+                "--flag-name", "TCP Port Configuration",
+                "--variations", "${workspaceFolder}/examples/variations.json"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Create Flag with Env Rules",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/ld_json_flag/cli.py",
+            "args": [
+                "create",
+                "--api-key", "${env:LD_API_KEY}",
+                "--project-key", "default",
+                "--flag-key", "tcp-port-config",
+                "--flag-name", "TCP Port Configuration",
+                "--variations", "${workspaceFolder}/examples/variations.json",
+                "--env-rules", "production:${workspaceFolder}/examples/production-rules.json",
+                "development:${workspaceFolder}/examples/development-rules.json"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Update Flag (Interactive)",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/ld_json_flag/cli.py",
+            "args": [
+                "update",
+                "--api-key", "${env:LD_API_KEY}"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        }
+    ]
+}

@@ -1,0 +1,18 @@
+[
+    {
+      "description": "QA team gets testing port",
+      "clauses": [
+        {
+          "attribute": "department",
+          "op": "in",
+          "values": ["qa", "testing"]
+        }
+      ],
+      "variation": 2
+    },
+    {
+      "description": "Everyone else gets development port",
+      "clauses": [],
+      "variation": 1
+    }
+  ]
