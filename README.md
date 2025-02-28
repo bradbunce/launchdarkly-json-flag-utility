@@ -16,7 +16,7 @@ A command-line tool to create and update LaunchDarkly feature flags with JSON va
 Clone this repository:
 
 ```bash
-git clone https://github.com/yourusername/launchdarkly-json-flag-utility.git
+git clone https://github.com/bradbunce/launchdarkly-json-flag-utility.git
 cd launchdarkly-json-flag-utility
 ```
 
@@ -34,37 +34,32 @@ pip install -e .
 
 ## Usage
 
-### Creating a New Feature Flag
+The simplest way to use the utility is in interactive mode:
 
 ```bash
-python -m ld_json_flag.cli create \
-  --api-key "api-12345" \
-  --project-key "my-project" \
-  --flag-key "tcp-port-config" \
-  --flag-name "TCP Port Configuration" \
-  --variations examples/variations.json
+python -m ld_json_flag.cli
 ```
 
-### Updating an Existing Flag (Interactive Mode)
+This will guide you through the process of:
 
-```bash
-python -m ld_json_flag.cli update \
-  --api-key "api-12345"
-```
+1. Selecting a project
+2. Choosing to create a new flag or update an existing one
+3. For new flags:
+   - Entering a name and key
+   - Defining variations in your default editor
+4. For existing flags:
+   - Selecting a flag from the project
+   - Editing variations in your default editor
+5. Validating and saving your changes
 
-This will:
+When editing variations, you can:
 
-1. Prompt you to select a project
-2. Display all JSON feature flags in that project
-3. Allow you to select a flag to update
-4. Open the current variations in your default editor
-5. Allow you to edit, add, or remove variations:
-   - To add a variation: Add a new JSON object to the array
-   - To remove a variation: Delete its JSON object from the array
-   - To edit a variation: Modify the existing JSON object
-   - When adding a new variation, you can omit the \_id field
-6. Validate the edited variations
-7. Update the flag with the new variations
+- Add a variation by adding a new JSON object to the array
+- Remove a variation by deleting its JSON object
+- Edit a variation by modifying the existing JSON object
+- When adding a new variation, you can omit the \_id field
+
+Advanced usage with command-line arguments is also available. See `python -m ld_json_flag.cli --help` for details.
 
 ## JSON Schema Validation
 
@@ -112,6 +107,21 @@ LD_PROJECT_KEY=default
   }
 ]
 ```
+
+## Testing
+
+The project includes comprehensive tests for all functionality. To run the tests:
+
+```bash
+python -m pytest tests/
+```
+
+The test suite covers:
+
+- TCP port JSON validation
+- API interactions with LaunchDarkly (mocked)
+- Creating and updating feature flags
+- Getting projects, environments, and flags
 
 ## VS Code Integration
 
