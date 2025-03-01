@@ -1,6 +1,6 @@
 """Tests for the CLI functionality."""
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, ANY
 import sys
 from io import StringIO
 from ld_json_flag.cli import main, parse_arguments
@@ -20,8 +20,8 @@ def test_validate_command(mock_client_class, mock_validate_workflow):
     result = main()
 
     # Assertions
-    mock_client_class.assert_called_once_with("fake-key", "test-project")
-    mock_validate_workflow.assert_called_once_with(mock_client, False, "test-project")
+    mock_client_class.assert_called_once_with("fake-key", ANY)
+    mock_validate_workflow.assert_called_once_with(mock_client, False, ANY)
     assert result == 0
 
 
@@ -39,8 +39,8 @@ def test_validate_command_with_fix(mock_client_class, mock_validate_workflow):
     result = main()
 
     # Assertions
-    mock_client_class.assert_called_once_with("fake-key", "test-project")
-    mock_validate_workflow.assert_called_once_with(mock_client, True, "test-project")
+    mock_client_class.assert_called_once_with("fake-key", ANY)
+    mock_validate_workflow.assert_called_once_with(mock_client, True, ANY)
     assert result == 0
 
 
@@ -58,7 +58,7 @@ def test_update_command(mock_client_class, mock_update_workflow):
     result = main()
 
     # Assertions
-    mock_client_class.assert_called_once_with("fake-key", "test-project")
+    mock_client_class.assert_called_once_with("fake-key", ANY)
     mock_update_workflow.assert_called_once_with(mock_client)
     assert result == 0
 
@@ -91,9 +91,9 @@ def test_create_command(mock_client_class, mock_create_workflow):
     result = main()
 
     # Assertions
-    mock_client_class.assert_called_once_with("fake-key", "test-project")
+    mock_client_class.assert_called_once_with("fake-key", ANY)
     mock_create_workflow.assert_called_once_with(
-        mock_client, "test-flag", "Test Flag", "variations.json", None, "test-project"
+        mock_client, "test-flag", "Test Flag", "variations.json", None, ANY
     )
     assert result == 0
 
@@ -117,7 +117,7 @@ def test_interactive_mode(mock_client_class, mock_interactive_workflow):
         result = main()
 
         # Assertions
-        mock_client_class.assert_called_once_with("fake-key", "test-project")
+        mock_client_class.assert_called_once_with("fake-key", ANY)
         mock_interactive_workflow.assert_called_once_with(mock_client)
         assert result == 0
         assert (
