@@ -8,8 +8,9 @@ A CLI and web application to create, update, and validate LaunchDarkly feature f
 - Add, edit, or remove variations from JSON feature flags
 - Validate existing JSON feature flags against schema requirements
 - Automatically fix invalid flag variations through interactive editing (CLI) or AI suggestions (Web UI)
+- Inline JSON editor in the web UI for direct variation editing
 - AI-powered fix suggestions using LaunchDarkly AI Configs with Amazon Bedrock
-- Web dashboard with real-time validation status
+- Web dashboard with project selector and real-time validation status
 - Example JSON schema validation for TCP port configuration
 - Interactive mode for selecting projects and flags
 - Command-line interface for easy integration with CI/CD pipelines
@@ -69,13 +70,18 @@ cp .env.example .env
 | Variable | Description |
 |----------|-------------|
 | `LD_API_KEY` | LaunchDarkly API key (for flag management) |
-| `LD_PROJECT_KEY` | LaunchDarkly project key |
+| `LD_PROJECT_KEY` | Default LaunchDarkly project key (web UI allows switching) |
 
-### Optional Environment Variables (for Web UI with AI features)
+### Required for Web UI AI Features
 
 | Variable | Description |
 |----------|-------------|
 | `LD_SDK_KEY` | LaunchDarkly server-side SDK key (for AI Configs) |
+
+### Optional Environment Variables
+
+| Variable | Description |
+|----------|-------------|
 | `AWS_REGION` | AWS region override (defaults to AWS CLI profile region) |
 | `AWS_ACCESS_KEY_ID` | AWS access key (if not using AWS CLI profile) |
 | `AWS_SECRET_ACCESS_KEY` | AWS secret key (if not using AWS CLI profile) |
@@ -97,7 +103,9 @@ Then open http://localhost:8080 in your browser.
 
 ### Features
 
+- Project selector dropdown — switch between LaunchDarkly projects
 - Dashboard showing all JSON flags with validation status (✅/❌)
+- Inline JSON editor — edit variation values directly in the browser
 - One-click validation refresh
 - AI-powered fix suggestions for invalid variations using LaunchDarkly AI Configs
 - One-click apply for AI-suggested fixes
