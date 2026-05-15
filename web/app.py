@@ -283,6 +283,43 @@ async def apply_fix(request: Request, flag_key: str, variation_index: int):
         return HTMLResponse(f"<p class='error'>Error applying fix: {str(e)}</p>")
 
 
+@app.post("/update-variation/{flag_key}/{variation_index}", response_class=HTMLResponse)
+async def update_variation(request: Request, flag_key: str, variation_index: int):
+    """Update a flag variation with user-edited JSON value."""
+    form = await request.form()
+    raw_value = form.get("value", "")
+
+    # Parse the JSON
+    try:
+        new_value = json.loads(raw_value)
+    except json.JSONDecodeError as e:
+        return HTMLResponse(f"<p class='error'>Invalid JSON: {str(e)}</p>")
+
+    # Validate the new value
+    try:
+        flag_client.validate_tcp_port_json(new_value)
+    except ValueError as e:
+        return HTMLResponse(f"<p class='error'>Validation failed: {str(e)}</p>")
+
+    # Get current variations and update the specific one
+    flag_details = flag_client.get_feature_flag(flag_key, LD_PROJECT_KEY)
+    variations = flag_details.get("variations", [])
+
+    if variation_index >= len(variations):
+        return HTMLResponse("<p class='error'>Variation not found</p>")
+
+    variations[variation_index]["value"] = new_value
+
+    # Update via LaunchDarkly API
+    try:
+        flag_client.update_flag_variations(flag_key, variations, LD_PROJECT_KEY)
+        return HTMLResponse(
+            "<p class='success'>✅ Saved successfully! Refresh to see updated status.</p>"
+        )
+    except Exception as e:
+        return HTMLResponse(f"<p class='error'>Error saving: {str(e)}</p>")
+
+
 @app.on_event("shutdown")
 async def shutdown():
     """Clean up LaunchDarkly client on shutdown."""

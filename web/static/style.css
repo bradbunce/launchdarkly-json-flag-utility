@@ -210,3 +210,56 @@ main {
 .htmx-request.htmx-indicator {
     display: inline;
 }
+
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-top: 0.75rem;
+}
+
+.btn-edit {
+    background: #3b82f6;
+    color: #fff;
+}
+
+.btn-cancel {
+    background: #6b7280;
+    color: #fff;
+}
+
+.edit-form {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #1a1a2e;
+}
+
+.json-editor {
+    width: 100%;
+    background: #1a1a2e;
+    color: #a0c4ff;
+    border: 1px solid #405cf5;
+    border-radius: 4px;
+    padding: 0.8rem;
+    font-family: "SF Mono", "Fira Code", "Fira Mono", monospace;
+    font-size: 0.85rem;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.json-editor:focus {
+    outline: none;
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2);
+}
+
+.edit-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.edit-result {
+    margin-top: 0.5rem;
+}

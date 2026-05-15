@@ -20,22 +20,67 @@
                 <span class="variation-name">{{ var.name }}</span>
                 <span class="variation-status">{{ '✅' if var.is_valid else '❌ ' + var.error }}</span>
             </div>
-            <pre class="variation-value">{{ var.value | tojson(indent=2) }}</pre>
+            <pre class="variation-value"
+                id="value-display-{{ flag.key }}-{{ loop.index0 }}">{{ var.value | tojson(indent=2) }}</pre>
 
-            {% if not var.is_valid %}
-            <div class="fix-section">
+            <div class="action-buttons">
+                <button onclick="toggleEdit('{{ flag.key }}', {{ loop.index0 }})" class="btn btn-edit"
+                    id="edit-btn-{{ flag.key }}-{{ loop.index0 }}">
+                    ✏️ Edit
+                </button>
+
+                {% if not var.is_valid %}
                 <button hx-post="/fix/{{ flag.key }}/{{ loop.index0 }}"
                     hx-target="#fix-result-{{ flag.key }}-{{ loop.index0 }}" hx-swap="innerHTML" class="btn btn-ai"
                     hx-indicator="#spinner-{{ flag.key }}-{{ loop.index0 }}">
                     🤖 Ask AI for Fix
                 </button>
                 <span id="spinner-{{ flag.key }}-{{ loop.index0 }}" class="htmx-indicator">Thinking...</span>
-                <div id="fix-result-{{ flag.key }}-{{ loop.index0 }}" class="fix-result"></div>
+                {% endif %}
             </div>
-            {% endif %}
+
+            <div id="edit-form-{{ flag.key }}-{{ loop.index0 }}" class="edit-form" style="display: none;">
+                <textarea id="edit-textarea-{{ flag.key }}-{{ loop.index0 }}" class="json-editor"
+                    rows="6">{{ var.value | tojson(indent=2) }}</textarea>
+                <div class="edit-actions">
+                    <button hx-post="/update-variation/{{ flag.key }}/{{ loop.index0 }}"
+                        hx-include="[id='edit-textarea-{{ flag.key }}-{{ loop.index0 }}']"
+                        hx-target="#edit-result-{{ flag.key }}-{{ loop.index0 }}" hx-swap="innerHTML"
+                        hx-vals='js:{"value": document.getElementById("edit-textarea-{{ flag.key }}-{{ loop.index0 }}").value}'
+                        class="btn btn-success">
+                        💾 Save
+                    </button>
+                    <button onclick="toggleEdit('{{ flag.key }}', {{ loop.index0 }})" class="btn btn-cancel">
+                        Cancel
+                    </button>
+                </div>
+                <div id="edit-result-{{ flag.key }}-{{ loop.index0 }}" class="edit-result"></div>
+            </div>
+
+            <div id="fix-result-{{ flag.key }}-{{ loop.index0 }}" class="fix-result"></div>
         </div>
         {% endfor %}
     </div>
 </div>
 {% endfor %}
+
+<script>
+    function toggleEdit(flagKey, varIndex) {
+        const form = document.getElementById(`edit-form-${flagKey}-${varIndex}`);
+        const display = document.getElementById(`value-display-${flagKey}-${varIndex}`);
+        const btn = document.getElementById(`edit-btn-${flagKey}-${varIndex}`);
+
+        if (form.style.display === 'none') {
+            form.style.display = 'block';
+            display.style.display = 'none';
+            btn.textContent = '✏️ Editing...';
+            btn.disabled = true;
+        } else {
+            form.style.display = 'none';
+            display.style.display = 'block';
+            btn.textContent = '✏️ Edit';
+            btn.disabled = false;
+        }
+    }
+</script>
 {% endif %}
