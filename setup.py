@@ -5,8 +5,8 @@ setup(
     version="0.2.0",
     packages=find_packages(),
     install_requires=[
-        "requests>=2.25.0",
-        "python-dotenv>=0.15.0",
+        "requests>=2.31.0",
+        "python-dotenv>=1.0.0",
     ],
     entry_points={
         "console_scripts": [
