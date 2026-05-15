@@ -15,18 +15,20 @@
     </header>
 
     <main>
-        <div id="app-container">
-            <div class="loading-state">
-                <div class="spinner"></div>
-                <p>Loading...</p>
-            </div>
-        </div>
+        <div id="app-container"></div>
     </main>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const savedToken = localStorage.getItem('ld_api_key');
             if (savedToken) {
+                // Show loading state while connecting
+                document.getElementById('app-container').innerHTML = `
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <p>Loading projects and flags from LaunchDarkly...</p>
+                    </div>
+                `;
                 // Load with saved token
                 htmx.ajax('POST', '/connect', {
                     target: '#app-container',
