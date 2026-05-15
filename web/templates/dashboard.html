@@ -19,9 +19,99 @@
     </main>
 
     <script>
+        function getSavedTokens() {
+            const tokens = localStorage.getItem('ld_saved_tokens');
+            return tokens ? JSON.parse(tokens) : [];
+        }
+
+        function saveToken(token) {
+            const tokens = getSavedTokens();
+            // Store masked version for display, full token for use
+            const existing = tokens.find(t => t.key === token);
+            if (!existing) {
+                const masked = token.length > 12
+                    ? token.slice(0, 8) + '...' + token.slice(-4)
+                    : token;
+                tokens.push({ key: token, display: masked });
+                localStorage.setItem('ld_saved_tokens', JSON.stringify(tokens));
+            }
+            localStorage.setItem('ld_api_key', token);
+        }
+
+        function removeToken(token) {
+            let tokens = getSavedTokens();
+            tokens = tokens.filter(t => t.key !== token);
+            localStorage.setItem('ld_saved_tokens', JSON.stringify(tokens));
+        }
+
+        function maskToken(token) {
+            return token.length > 12
+                ? token.slice(0, 8) + '...' + token.slice(-4)
+                : token;
+        }
+
+        function showConnectScreen() {
+            const tokens = getSavedTokens();
+            let savedList = '';
+
+            if (tokens.length > 0) {
+                savedList = `
+                    <div class="saved-tokens">
+                        <h3>Saved Tokens</h3>
+                        <ul class="token-list">
+                            ${tokens.map(t => `
+                                <li class="token-list-item">
+                                    <button class="btn btn-token" onclick="connectWithToken('${t.key}')">
+                                        <code>${t.display}</code>
+                                    </button>
+                                    <button class="btn btn-remove" onclick="removeAndRefresh('${t.key}')" title="Remove">✕</button>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                    <div class="divider"><span>or enter a new token</span></div>
+                `;
+            }
+
+            document.getElementById('app-container').innerHTML = `
+                <div class="token-prompt">
+                    <h2>Connect to LaunchDarkly</h2>
+                    <p>Select a saved token or enter a new one.</p>
+                    ${savedList}
+                    <form hx-post="/connect" hx-target="#app-container" hx-swap="innerHTML">
+                        <div class="token-input-group">
+                            <input type="password" name="api_key" placeholder="api-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" class="token-input" required>
+                            <button type="submit" class="btn btn-primary">🔑 Connect</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            htmx.process(document.getElementById('app-container'));
+        }
+
+        function connectWithToken(token) {
+            document.getElementById('app-container').innerHTML = `
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Loading projects and flags from LaunchDarkly...</p>
+                </div>
+            `;
+            localStorage.setItem('ld_api_key', token);
+            htmx.ajax('POST', '/connect', {
+                target: '#app-container',
+                swap: 'innerHTML',
+                values: { api_key: token }
+            });
+        }
+
+        function removeAndRefresh(token) {
+            removeToken(token);
+            showConnectScreen();
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
-            const savedToken = localStorage.getItem('ld_api_key');
-            if (savedToken) {
+            const activeToken = localStorage.getItem('ld_api_key');
+            if (activeToken) {
                 // Show loading state while connecting
                 document.getElementById('app-container').innerHTML = `
                     <div class="loading-state">
@@ -29,27 +119,13 @@
                         <p>Loading projects and flags from LaunchDarkly...</p>
                     </div>
                 `;
-                // Load with saved token
                 htmx.ajax('POST', '/connect', {
                     target: '#app-container',
                     swap: 'innerHTML',
-                    values: { api_key: savedToken }
+                    values: { api_key: activeToken }
                 });
             } else {
-                // Show token input form
-                document.getElementById('app-container').innerHTML = `
-                    <div class="token-prompt">
-                        <h2>Connect to LaunchDarkly</h2>
-                        <p>Enter your LaunchDarkly API access token to get started.</p>
-                        <form hx-post="/connect" hx-target="#app-container" hx-swap="innerHTML">
-                            <div class="token-input-group">
-                                <input type="password" name="api_key" placeholder="api-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" class="token-input" required>
-                                <button type="submit" class="btn btn-primary">🔑 Connect</button>
-                            </div>
-                        </form>
-                    </div>
-                `;
-                htmx.process(document.getElementById('app-container'));
+                showConnectScreen();
             }
         });
 
@@ -58,16 +134,16 @@
             if (event.detail.pathInfo.requestPath === '/connect' && event.detail.successful) {
                 const formData = event.detail.requestConfig.parameters;
                 if (formData && formData.api_key) {
-                    localStorage.setItem('ld_api_key', formData.api_key);
+                    saveToken(formData.api_key);
                 }
             }
         });
 
-        // Handle disconnect — clear localStorage and reload
+        // Handle disconnect — clear active token and show connect screen
         document.body.addEventListener('click', function (event) {
             if (event.target.id === 'disconnect-btn') {
                 localStorage.removeItem('ld_api_key');
-                location.reload();
+                showConnectScreen();
             }
         });
     </script>
