@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LaunchDarkly JSON Flag Utility</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+</head>
+<body>
+    <header>
+        <h1>🚀 LaunchDarkly JSON Flag Utility</h1>
+        <p class="subtitle">Project: <strong>{{ project_key }}</strong></p>
+    </header>
+
+    <main>
+        <div class="toolbar">
+            <button hx-post="/validate" hx-target="#flag-list" hx-swap="innerHTML" class="btn btn-primary">
+                🔄 Refresh & Validate
+            </button>
+        </div>
+
+        <div id="flag-list">
+            {% include "partials/flag_list.html" %}
+        </div>
+    </main>
+</body>
+</html>

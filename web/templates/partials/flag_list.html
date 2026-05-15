@@ -1,0 +1,41 @@
+{% if not flags %}
+<div class="empty-state">
+    <p>No JSON feature flags found in this project.</p>
+</div>
+{% else %}
+{% for flag in flags %}
+<div class="flag-card {{ 'valid' if flag.is_valid else 'invalid' }}">
+    <div class="flag-header">
+        <h2>
+            <span class="status-icon">{{ '✅' if flag.is_valid else '❌' }}</span>
+            {{ flag.name }}
+        </h2>
+        <code class="flag-key">{{ flag.key }}</code>
+    </div>
+
+    <div class="variations">
+        {% for var in flag.variations %}
+        <div class="variation {{ 'valid' if var.is_valid else 'invalid' }}">
+            <div class="variation-header">
+                <span class="variation-name">{{ var.name }}</span>
+                <span class="variation-status">{{ '✅' if var.is_valid else '❌ ' + var.error }}</span>
+            </div>
+            <pre class="variation-value">{{ var.value | tojson(indent=2) }}</pre>
+
+            {% if not var.is_valid %}
+            <div class="fix-section">
+                <button hx-post="/fix/{{ flag.key }}/{{ loop.index0 }}"
+                    hx-target="#fix-result-{{ flag.key }}-{{ loop.index0 }}" hx-swap="innerHTML" class="btn btn-ai"
+                    hx-indicator="#spinner-{{ flag.key }}-{{ loop.index0 }}">
+                    🤖 Ask AI for Fix
+                </button>
+                <span id="spinner-{{ flag.key }}-{{ loop.index0 }}" class="htmx-indicator">Thinking...</span>
+                <div id="fix-result-{{ flag.key }}-{{ loop.index0 }}" class="fix-result"></div>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endfor %}
+{% endif %}

@@ -1,13 +1,15 @@
 # LaunchDarkly JSON Flag Utility
 
-A command-line tool to create and update LaunchDarkly feature flags with JSON variations.
+A CLI and web application to create, update, and validate LaunchDarkly feature flags with JSON variations. Includes AI-powered fix suggestions via LaunchDarkly AI Configs and Amazon Bedrock.
 
 ## Features
 
 - Create new feature flags with JSON variations at the project level
 - Add, edit, or remove variations from JSON feature flags
 - Validate existing JSON feature flags against schema requirements
-- Automatically fix invalid flag variations through interactive editing
+- Automatically fix invalid flag variations through interactive editing (CLI) or AI suggestions (Web UI)
+- AI-powered fix suggestions using LaunchDarkly AI Configs with Amazon Bedrock
+- Web dashboard with real-time validation status
 - Example JSON schema validation for TCP port configuration
 - Interactive mode for selecting projects and flags
 - Command-line interface for easy integration with CI/CD pipelines
@@ -23,17 +25,15 @@ cd launchdarkly-json-flag-utility
 
 ### Using a Virtual Environment (Recommended)
 
-It's recommended to use a virtual environment to avoid conflicts with system packages:
-
 ```bash
 # Create a virtual environment
-python -m venv venv
+python3 -m venv .venv
 
 # Activate the virtual environment
 # On macOS/Linux:
-source venv/bin/activate
+source .venv/bin/activate
 # On Windows:
-# venv\Scripts\activate
+# .venv\Scripts\activate
 ```
 
 ### For Regular Users
@@ -44,7 +44,7 @@ After activating your virtual environment, install the package:
 pip install .
 ```
 
-This will make the `ld-json-flag` command available in your environment.
+This will make the `ld-json-flag` (CLI) and `ld-json-flag-web` (web UI) commands available.
 
 ### For Developers
 
@@ -56,138 +56,128 @@ pip install -e .
 
 This creates an "editable" installation where changes to the source code are immediately reflected without needing to reinstall.
 
-### Quick Start Without Installation
+## Configuration
 
-If you just want to try the utility without installing it, you can install only the dependencies and run it directly:
+Copy the example environment file and fill in your values:
 
 ```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Run the utility
-python -m ld_json_flag.cli
+cp .env.example .env
 ```
 
-## Usage
+### Required Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `LD_API_KEY` | LaunchDarkly API key (for flag management) |
+| `LD_PROJECT_KEY` | LaunchDarkly project key |
+
+### Optional Environment Variables (for Web UI with AI features)
+
+| Variable | Description |
+|----------|-------------|
+| `LD_SDK_KEY` | LaunchDarkly server-side SDK key (for AI Configs) |
+| `AWS_REGION` | AWS region override (defaults to AWS CLI profile region) |
+| `AWS_ACCESS_KEY_ID` | AWS access key (if not using AWS CLI profile) |
+| `AWS_SECRET_ACCESS_KEY` | AWS secret key (if not using AWS CLI profile) |
+| `EDITOR` | Editor for interactive CLI editing (defaults to vim/notepad) |
+
+For AWS credentials, the app supports both explicit keys in `.env` and the default AWS CLI profile (`aws configure`). If you have the AWS CLI configured, no AWS environment variables are needed.
+
+## Web UI
+
+The web interface provides a dashboard for viewing and managing JSON feature flags with AI-powered fix suggestions.
+
+### Running the Web UI
+
+```bash
+ld-json-flag-web
+```
+
+Then open http://localhost:8080 in your browser.
+
+### Features
+
+- Dashboard showing all JSON flags with validation status (✅/❌)
+- One-click validation refresh
+- AI-powered fix suggestions for invalid variations using LaunchDarkly AI Configs
+- One-click apply for AI-suggested fixes
+
+### LaunchDarkly AI Configs Integration
+
+The web UI uses LaunchDarkly AI Configs to manage the AI model and prompts for fix suggestions. This means you can change the model, adjust the prompt, or modify parameters directly in the LaunchDarkly UI without redeploying the app.
+
+**Setup:**
+
+1. Create a Completion-mode AI Config in LaunchDarkly named `json-validation-assistant`
+2. Select an Amazon Bedrock model (e.g., Claude Haiku 4.5)
+3. Set parameters: `temperature: 0`, `max_tokens: 256`
+4. Add a system message defining the assistant's role and validation rules
+5. Add a user message with template variables: `{{flag_name}}`, `{{flag_key}}`, `{{variation_name}}`, `{{variation_value}}`, `{{error_message}}`
+6. Enable targeting and set the default rule to serve your variation
+
+The app automatically prepends the `us.` inference profile prefix for Bedrock models.
+
+## CLI Usage
 
 ### Interactive Mode
 
-The simplest way to use the utility is in interactive mode:
-
 ```bash
-python -m ld_json_flag.cli
+ld-json-flag
 ```
 
-When run without any arguments, you'll see the message "No command specified. Running in interactive mode..." and the tool will guide you through the process interactively:
+When run without arguments, the tool guides you through:
 
 1. Selecting a project
-2. Choosing what you want to do:
-   - Create a new JSON feature flag
-   - Update an existing JSON feature flag
-   - Validate existing JSON feature flags
-3. For new flags:
-   - Entering a name and key
-   - Defining variations in your default editor
-4. For existing flags:
-   - Selecting a flag from the project
-   - Editing variations in your default editor
-5. For validation:
-   - Choosing whether to fix invalid flags if found
-   - Reviewing validation results
-   - Optionally editing and fixing invalid flags
-6. Validating and saving your changes
-
-When editing variations, you can:
-
-- Add a variation by adding a new JSON object to the array
-- Remove a variation by deleting its JSON object
-- Edit a variation by modifying the existing JSON object
-- When adding a new variation, you can omit the \_id field
+2. Choosing an action (create, update, or validate)
+3. For new flags: entering a name/key and defining variations in your editor
+4. For existing flags: selecting and editing variations
+5. For validation: reviewing results and optionally fixing invalid flags
 
 ### Command-Line Arguments
-
-For automation or CI/CD pipelines, you can use specific commands with arguments:
 
 #### Create a new flag
 
 ```bash
-python -m ld_json_flag.cli create --flag-key my-flag --flag-name "My Flag" --variations examples/variations.json
+ld-json-flag create --flag-key my-flag --flag-name "My Flag" --variations examples/variations.json
 ```
 
 #### Update an existing flag
 
 ```bash
-python -m ld_json_flag.cli update
+ld-json-flag update
 ```
-
-This will still prompt you to select a project and flag, but will skip the initial mode selection.
 
 #### Validate existing flags
 
 ```bash
-python -m ld_json_flag.cli validate
+ld-json-flag validate
 ```
 
-This powerful feature scans all JSON feature flags in a project and validates them against the TCP port schema requirements. The validation process:
-
-1. Automatically discovers all JSON feature flags in the selected project
-2. Checks each variation in each flag for schema compliance
-3. Provides detailed reports of any validation errors found
-4. Summarizes the validation results
-
-If invalid flags are found, the tool will report them but not modify them by default.
-
-To automatically prompt for fixing invalid flags:
+To interactively fix invalid flags:
 
 ```bash
-python -m ld_json_flag.cli validate --fix
+ld-json-flag validate --fix
 ```
-
-With the `--fix` option, the utility will:
-
-1. Open your editor to fix each invalid flag's variations
-2. Re-validate the changes before applying them
-3. Only update flags that have been successfully fixed
-4. Skip flags that still have validation errors after editing
-
-This feature is particularly valuable for maintaining consistency across feature flags, especially in projects with many flags or multiple contributors.
 
 #### Additional options
 
-You can specify the API key and project key as arguments:
-
 ```bash
-python -m ld_json_flag.cli --api-key your-api-key --project-key your-project-key create --flag-key my-flag --flag-name "My Flag" --variations examples/variations.json
+ld-json-flag --api-key your-api-key --project-key your-project-key create --flag-key my-flag --flag-name "My Flag" --variations examples/variations.json
 ```
 
-For a complete list of available arguments, run:
+For a complete list of arguments:
 
 ```bash
-python -m ld_json_flag.cli --help
+ld-json-flag --help
 ```
 
-## Example JSON Schema Validation
+## JSON Schema Validation
 
 The tool validates that all JSON variations follow the TCP port schema:
 
 - Each variation must contain a `tcp_port` property
 - The `tcp_port` value must be an integer
 - The `tcp_port` value must be between 0 and 65535
-
-## Environment Variables
-
-You can set the following environment variables instead of using command-line arguments:
-
-- `LD_API_KEY`: Your LaunchDarkly API key
-- `LD_PROJECT_KEY`: Your default LaunchDarkly project key
-- `EDITOR`: The editor to use for interactive editing (defaults to vim on Linux/Mac, notepad on Windows)
-
-You can also create a `.env` file in the project directory:
-
-```
-LD_API_KEY=api-12345
-LD_PROJECT_KEY=default
-```
 
 ## Example JSON Files
 
@@ -215,10 +205,9 @@ LD_PROJECT_KEY=default
 
 ## Testing
 
-The project includes comprehensive tests for all functionality. To run the tests:
-
 ```bash
-python -m pytest tests/
+pip install pytest
+python3 -m pytest tests/
 ```
 
 The test suite covers:

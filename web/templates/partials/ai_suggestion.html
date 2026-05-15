@@ -1,0 +1,13 @@
+<div class="ai-suggestion {{ 'valid' if suggestion_valid else 'invalid' }}">
+    <h4>🤖 AI Suggestion {{ '✅' if suggestion_valid else '⚠️ (invalid)' }}</h4>
+    <pre class="suggestion-value">{{ suggestion }}</pre>
+
+    {% if suggestion_valid %}
+    <form hx-post="/apply-fix/{{ flag_key }}/{{ variation_index }}" hx-swap="outerHTML">
+        <input type="hidden" name="suggested_value" value="{{ suggestion }}">
+        <button type="submit" class="btn btn-success">✅ Apply Fix</button>
+    </form>
+    {% else %}
+    <p class="warning">The AI suggestion doesn't pass validation. Try again or fix manually.</p>
+    {% endif %}
+</div>

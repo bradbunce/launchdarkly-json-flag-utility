@@ -7,10 +7,18 @@ setup(
     install_requires=[
         "requests>=2.31.0",
         "python-dotenv>=1.0.0",
+        "fastapi>=0.115.0",
+        "uvicorn>=0.30.0",
+        "jinja2>=3.1.0",
+        "python-multipart>=0.0.7",
+        "boto3>=1.34.0",
+        "launchdarkly-server-sdk>=9.6.0",
+        "launchdarkly-server-sdk-ai>=0.20.0",
     ],
     entry_points={
         "console_scripts": [
             "ld-json-flag=ld_json_flag.cli:main",
+            "ld-json-flag-web=web.run:main",
         ],
     },
     author="Brad Bunce",
