@@ -59,33 +59,31 @@ This creates an "editable" installation where changes to the source code are imm
 
 ## Configuration
 
-Copy the example environment file and fill in your values:
+### Web UI
+
+The web UI requires no `.env` file. API tokens are entered directly in the browser and stored in localStorage. Just run the server and connect.
+
+For the AI fix feature, you'll need:
+- A LaunchDarkly server-side SDK key (`LD_SDK_KEY` in `.env`)
+- AWS credentials (via `aws configure` or environment variables)
+
+### CLI
+
+The CLI uses environment variables. Copy the example file and fill in your values:
 
 ```bash
 cp .env.example .env
 ```
 
-### Required Environment Variables
-
-| Variable | Description |
-|----------|-------------|
-| `LD_API_KEY` | LaunchDarkly API key (for flag management) |
-
-### Required for Web UI AI Features
-
-| Variable | Description |
-|----------|-------------|
-| `LD_SDK_KEY` | LaunchDarkly server-side SDK key (for AI Configs) |
-
-### Optional Environment Variables
-
-| Variable | Description |
-|----------|-------------|
-| `LD_PROJECT_KEY` | Default project key (web UI has a selector, CLI will prompt if not set) |
-| `AWS_REGION` | AWS region override (defaults to AWS CLI profile region) |
-| `AWS_ACCESS_KEY_ID` | AWS access key (if not using AWS CLI profile) |
-| `AWS_SECRET_ACCESS_KEY` | AWS secret key (if not using AWS CLI profile) |
-| `EDITOR` | Editor for interactive CLI editing (defaults to vim/notepad) |
+| Variable | Required For | Description |
+|----------|-------------|-------------|
+| `LD_API_KEY` | CLI | LaunchDarkly API key (web UI uses browser input instead) |
+| `LD_SDK_KEY` | AI features | LaunchDarkly server-side SDK key (for AI Configs) |
+| `LD_PROJECT_KEY` | Neither | Default project (CLI will prompt, web UI has a selector) |
+| `AWS_REGION` | Neither | AWS region override (defaults to AWS CLI profile) |
+| `AWS_ACCESS_KEY_ID` | Neither | AWS access key (if not using AWS CLI profile) |
+| `AWS_SECRET_ACCESS_KEY` | Neither | AWS secret key (if not using AWS CLI profile) |
+| `EDITOR` | Neither | Editor for interactive CLI editing (defaults to vim/notepad) |
 
 For AWS credentials, the app supports both explicit keys in `.env` and the default AWS CLI profile (`aws configure`). If you have the AWS CLI configured, no AWS environment variables are needed.
 
@@ -103,12 +101,14 @@ Then open http://localhost:8080 in your browser.
 
 ### Features
 
+- Token management — enter, save, and switch between multiple LaunchDarkly API tokens (stored in browser localStorage)
 - Project selector dropdown — switch between LaunchDarkly projects
 - Dashboard showing all JSON flags with validation status (✅/❌)
 - Inline JSON editor — edit variation values directly in the browser
 - One-click validation refresh
 - AI-powered fix suggestions for invalid variations using LaunchDarkly AI Configs
 - One-click apply for AI-suggested fixes
+- No `.env` file required — fully self-contained in the browser
 
 ### LaunchDarkly AI Configs Integration
 
