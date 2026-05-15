@@ -74,12 +74,14 @@ header {
 }
 
 .header-content {
-    display: flex;
-    align-items: center;
-    justify-content: center;
     max-width: 960px;
     margin: 0 auto;
     position: relative;
+    text-align: center;
+}
+
+.header-title {
+    display: inline-block;
 }
 
 header h1 {
@@ -87,7 +89,6 @@ header h1 {
     font-weight: 700;
     letter-spacing: -0.02em;
     color: #ffffff;
-    text-align: center;
 }
 
 .header-subtitle {
@@ -95,12 +96,13 @@ header h1 {
     font-size: 0.8rem;
     margin-top: 0.15rem;
     font-weight: 400;
-    text-align: center;
 }
 
 .theme-toggle {
     position: absolute;
     right: 0;
+    top: 50%;
+    transform: translateY(-50%);
     background: transparent;
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
