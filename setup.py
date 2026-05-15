@@ -21,8 +21,8 @@ setup(
             "ld-json-flag-web=web.run:main",
         ],
     },
-    author="Brad Bunce",
-    author_email="bradbunce@yahoo.com",
+    author="BeachFox Software",
+    author_email="hello@beachfoxsoftware.com",
     description=(
         "Utility to create and update LaunchDarkly feature flags "
         "with JSON variations"
