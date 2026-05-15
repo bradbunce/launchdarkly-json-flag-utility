@@ -20,8 +20,8 @@ load_dotenv()
 
 # --- LaunchDarkly REST API client (flag management) ---
 LD_API_KEY = os.environ.get("LD_API_KEY")
-LD_PROJECT_KEY = os.environ.get("LD_PROJECT_KEY", "default")
-flag_client = LaunchDarklyClient(LD_API_KEY, LD_PROJECT_KEY)
+DEFAULT_PROJECT_KEY = os.environ.get("LD_PROJECT_KEY", "default")
+flag_client = LaunchDarklyClient(LD_API_KEY, DEFAULT_PROJECT_KEY)
 
 # --- LaunchDarkly Server SDK (AI Configs) ---
 LD_SDK_KEY = os.environ.get("LD_SDK_KEY")
@@ -37,6 +37,9 @@ bedrock_client = boto3.client(
     region_name=os.environ.get("AWS_REGION", None),
 )
 
+# --- Current project state ---
+current_project_key = DEFAULT_PROJECT_KEY
+
 # --- FastAPI app ---
 app = FastAPI(title="LaunchDarkly JSON Flag Utility")
 
@@ -47,13 +50,13 @@ templates = Jinja2Templates(directory=templates_dir)
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 
-def get_json_flags():
+def get_json_flags(project_key):
     """Fetch all JSON feature flags and their validation status."""
-    flags = flag_client.get_feature_flags(LD_PROJECT_KEY)
+    flags = flag_client.get_feature_flags(project_key)
     json_flags = []
 
     for flag in flags:
-        flag_details = flag_client.get_feature_flag(flag.get("key"), LD_PROJECT_KEY)
+        flag_details = flag_client.get_feature_flag(flag.get("key"), project_key)
         variations = flag_details.get("variations", [])
 
         has_json = False
@@ -102,18 +105,39 @@ def inference_config_from_params(params):
 @app.get("/", response_class=HTMLResponse)
 async def dashboard(request: Request):
     """Main dashboard showing all JSON flags and their validation status."""
-    json_flags = get_json_flags()
+    global current_project_key
+    projects = flag_client.get_projects()
+    json_flags = get_json_flags(current_project_key)
     return templates.TemplateResponse(
         request,
         "dashboard.html",
-        {"flags": json_flags, "project_key": LD_PROJECT_KEY},
+        {
+            "flags": json_flags,
+            "project_key": current_project_key,
+            "projects": projects,
+        },
+    )
+
+
+@app.post("/switch-project", response_class=HTMLResponse)
+async def switch_project(request: Request):
+    """Switch the active project."""
+    global current_project_key
+    form = await request.form()
+    new_project = form.get("project_key", current_project_key)
+    current_project_key = new_project
+    json_flags = get_json_flags(current_project_key)
+    return templates.TemplateResponse(
+        request,
+        "partials/flag_list.html",
+        {"flags": json_flags},
     )
 
 
 @app.post("/validate", response_class=HTMLResponse)
 async def validate_flags(request: Request):
     """Run validation and return results."""
-    json_flags = get_json_flags()
+    json_flags = get_json_flags(current_project_key)
     return templates.TemplateResponse(
         request,
         "partials/flag_list.html",
@@ -125,7 +149,7 @@ async def validate_flags(request: Request):
 async def ai_fix_suggestion(request: Request, flag_key: str, variation_index: int):
     """Get an AI-powered fix suggestion for an invalid variation."""
     # Get the flag details
-    flag_details = flag_client.get_feature_flag(flag_key, LD_PROJECT_KEY)
+    flag_details = flag_client.get_feature_flag(flag_key, current_project_key)
     variations = flag_details.get("variations", [])
 
     if variation_index >= len(variations):
@@ -265,7 +289,7 @@ async def apply_fix(request: Request, flag_key: str, variation_index: int):
         return HTMLResponse(f"<p class='error'>Suggestion is invalid: {str(e)}</p>")
 
     # Get current variations and update the specific one
-    flag_details = flag_client.get_feature_flag(flag_key, LD_PROJECT_KEY)
+    flag_details = flag_client.get_feature_flag(flag_key, current_project_key)
     variations = flag_details.get("variations", [])
 
     if variation_index >= len(variations):
@@ -275,7 +299,7 @@ async def apply_fix(request: Request, flag_key: str, variation_index: int):
 
     # Update via API
     try:
-        flag_client.update_flag_variations(flag_key, variations, LD_PROJECT_KEY)
+        flag_client.update_flag_variations(flag_key, variations, current_project_key)
         return HTMLResponse(
             "<p class='success'>✅ Fix applied successfully! Refresh to see updated status.</p>"
         )
@@ -302,7 +326,7 @@ async def update_variation(request: Request, flag_key: str, variation_index: int
         return HTMLResponse(f"<p class='error'>Validation failed: {str(e)}</p>")
 
     # Get current variations and update the specific one
-    flag_details = flag_client.get_feature_flag(flag_key, LD_PROJECT_KEY)
+    flag_details = flag_client.get_feature_flag(flag_key, current_project_key)
     variations = flag_details.get("variations", [])
 
     if variation_index >= len(variations):
@@ -312,7 +336,7 @@ async def update_variation(request: Request, flag_key: str, variation_index: int
 
     # Update via LaunchDarkly API
     try:
-        flag_client.update_flag_variations(flag_key, variations, LD_PROJECT_KEY)
+        flag_client.update_flag_variations(flag_key, variations, current_project_key)
         return HTMLResponse(
             "<p class='success'>✅ Saved successfully! Refresh to see updated status.</p>"
         )

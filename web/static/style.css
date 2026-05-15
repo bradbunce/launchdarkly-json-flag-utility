@@ -35,8 +35,6 @@ main {
 
 .toolbar {
     margin-bottom: 1.5rem;
-    display: flex;
-    gap: 1rem;
 }
 
 .btn {
@@ -262,4 +260,39 @@ main {
 
 .edit-result {
     margin-top: 0.5rem;
+}
+
+
+.project-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.project-selector label {
+    font-weight: 500;
+    color: #a0a0b0;
+}
+
+.project-selector select {
+    background: #0f3460;
+    color: #e0e0e0;
+    border: 1px solid #405cf5;
+    border-radius: 6px;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    min-width: 200px;
+}
+
+.project-selector select:focus {
+    outline: none;
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2);
+}
+
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }

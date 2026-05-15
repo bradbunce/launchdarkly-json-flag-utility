@@ -83,7 +83,11 @@ class LaunchDarklyClient:
             url = None
             links = data.get("_links", {})
             if links and "next" in links and links["next"]:
-                url = links["next"].get("href")
+                next_href = links["next"].get("href")
+                if next_href and not next_href.startswith("http"):
+                    url = f"https://app.launchdarkly.com{next_href}"
+                else:
+                    url = next_href
 
         return all_items
 
@@ -155,7 +159,11 @@ class LaunchDarklyClient:
             url = None
             links = data.get("_links", {})
             if links and "next" in links and links["next"]:
-                url = links["next"].get("href")
+                next_href = links["next"].get("href")
+                if next_href and not next_href.startswith("http"):
+                    url = f"https://app.launchdarkly.com{next_href}"
+                else:
+                    url = next_href
 
         return all_items
 
