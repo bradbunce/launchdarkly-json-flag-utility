@@ -15,13 +15,60 @@
     </header>
 
     <main>
-        <div id="app-container" hx-get="/load" hx-trigger="load" hx-swap="innerHTML">
+        <div id="app-container">
             <div class="loading-state">
                 <div class="spinner"></div>
-                <p>Loading projects and flags from LaunchDarkly...</p>
+                <p>Loading...</p>
             </div>
         </div>
     </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const savedToken = localStorage.getItem('ld_api_key');
+            if (savedToken) {
+                // Load with saved token
+                htmx.ajax('POST', '/connect', {
+                    target: '#app-container',
+                    swap: 'innerHTML',
+                    values: { api_key: savedToken }
+                });
+            } else {
+                // Show token input form
+                document.getElementById('app-container').innerHTML = `
+                    <div class="token-prompt">
+                        <h2>Connect to LaunchDarkly</h2>
+                        <p>Enter your LaunchDarkly API access token to get started.</p>
+                        <form hx-post="/connect" hx-target="#app-container" hx-swap="innerHTML">
+                            <div class="token-input-group">
+                                <input type="password" name="api_key" placeholder="api-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" class="token-input" required>
+                                <button type="submit" class="btn btn-primary">🔑 Connect</button>
+                            </div>
+                        </form>
+                    </div>
+                `;
+                htmx.process(document.getElementById('app-container'));
+            }
+        });
+
+        // Save token to localStorage on successful connect
+        document.body.addEventListener('htmx:afterRequest', function (event) {
+            if (event.detail.pathInfo.requestPath === '/connect' && event.detail.successful) {
+                const formData = event.detail.requestConfig.parameters;
+                if (formData && formData.api_key) {
+                    localStorage.setItem('ld_api_key', formData.api_key);
+                }
+            }
+        });
+
+        // Handle disconnect — clear localStorage and reload
+        document.body.addEventListener('click', function (event) {
+            if (event.target.id === 'disconnect-btn') {
+                localStorage.removeItem('ld_api_key');
+                location.reload();
+            }
+        });
+    </script>
 </body>
 
 </html>

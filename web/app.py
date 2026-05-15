@@ -112,17 +112,48 @@ async def dashboard(request: Request):
     )
 
 
-@app.get("/load", response_class=HTMLResponse)
-async def load_app(request: Request):
-    """Load projects and flags asynchronously after the page renders."""
+@app.post("/connect", response_class=HTMLResponse)
+async def connect(request: Request):
+    """Connect with an API token (from localStorage or user input)."""
     global current_project_key
-    projects = flag_client.get_projects()
+    form = await request.form()
+    api_key = form.get("api_key", "").strip()
 
-    # If no default project key is set, use the first project
-    if not current_project_key and projects:
+    if not api_key:
+        return HTMLResponse(
+            "<div class='token-prompt'><p class='error'>API key cannot be empty</p></div>"
+        )
+
+    # Update the client with the provided key
+    flag_client.api_key = api_key
+    flag_client.headers = {"Authorization": api_key, "Content-Type": "application/json"}
+
+    # Try to load projects
+    try:
+        projects = flag_client.get_projects()
+    except Exception:
+        return HTMLResponse(
+            "<div class='token-prompt'>"
+            "<h2>Connect to LaunchDarkly</h2>"
+            "<p class='error'>Invalid API key. Please try again.</p>"
+            "<form hx-post='/connect' hx-target='#app-container' hx-swap='innerHTML'>"
+            "<div class='token-input-group'>"
+            "<input type='password' name='api_key' placeholder='api-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx' class='token-input' required>"
+            "<button type='submit' class='btn btn-primary'>🔑 Connect</button>"
+            "</div></form></div>"
+        )
+
+    # Reset project and load flags
+    current_project_key = None
+    if projects:
         current_project_key = projects[0].get("key")
 
     json_flags = get_json_flags(current_project_key) if current_project_key else []
+
+    api_key_display = (
+        api_key[:8] + "..." + api_key[-4:] if len(api_key) > 12 else api_key
+    )
+
     return templates.TemplateResponse(
         request,
         "partials/app_content.html",
@@ -130,6 +161,50 @@ async def load_app(request: Request):
             "flags": json_flags,
             "project_key": current_project_key,
             "projects": projects,
+            "api_key_display": api_key_display,
+        },
+    )
+
+
+@app.get("/load", response_class=HTMLResponse)
+async def load_app(request: Request):
+    """Load projects and flags (fallback for .env token)."""
+    global current_project_key
+
+    if not flag_client.api_key:
+        return HTMLResponse(
+            "<div class='token-prompt'>"
+            "<h2>Connect to LaunchDarkly</h2>"
+            "<p>Enter your LaunchDarkly API access token to get started.</p>"
+            "<form hx-post='/connect' hx-target='#app-container' hx-swap='innerHTML'>"
+            "<div class='token-input-group'>"
+            "<input type='password' name='api_key' placeholder='api-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx' class='token-input' required>"
+            "<button type='submit' class='btn btn-primary'>🔑 Connect</button>"
+            "</div></form></div>"
+        )
+
+    projects = flag_client.get_projects()
+
+    # If no default project key is set, use the first project
+    if not current_project_key and projects:
+        current_project_key = projects[0].get("key")
+
+    json_flags = get_json_flags(current_project_key) if current_project_key else []
+
+    # Mask the API key for display
+    api_key = flag_client.api_key or ""
+    api_key_display = (
+        api_key[:8] + "..." + api_key[-4:] if len(api_key) > 12 else api_key
+    )
+
+    return templates.TemplateResponse(
+        request,
+        "partials/app_content.html",
+        {
+            "flags": json_flags,
+            "project_key": current_project_key,
+            "projects": projects,
+            "api_key_display": api_key_display,
         },
     )
 
@@ -143,6 +218,12 @@ async def switch_project(request: Request):
     current_project_key = new_project
     projects = flag_client.get_projects()
     json_flags = get_json_flags(current_project_key)
+
+    api_key = flag_client.api_key or ""
+    api_key_display = (
+        api_key[:8] + "..." + api_key[-4:] if len(api_key) > 12 else api_key
+    )
+
     return templates.TemplateResponse(
         request,
         "partials/app_content.html",
@@ -150,6 +231,7 @@ async def switch_project(request: Request):
             "flags": json_flags,
             "project_key": current_project_key,
             "projects": projects,
+            "api_key_display": api_key_display,
         },
     )
 
