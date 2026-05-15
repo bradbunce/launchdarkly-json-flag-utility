@@ -20,7 +20,7 @@ load_dotenv()
 
 # --- LaunchDarkly REST API client (flag management) ---
 LD_API_KEY = os.environ.get("LD_API_KEY")
-DEFAULT_PROJECT_KEY = os.environ.get("LD_PROJECT_KEY", "default")
+DEFAULT_PROJECT_KEY = os.environ.get("LD_PROJECT_KEY")
 flag_client = LaunchDarklyClient(LD_API_KEY, DEFAULT_PROJECT_KEY)
 
 # --- LaunchDarkly Server SDK (AI Configs) ---
@@ -107,7 +107,12 @@ async def dashboard(request: Request):
     """Main dashboard showing all JSON flags and their validation status."""
     global current_project_key
     projects = flag_client.get_projects()
-    json_flags = get_json_flags(current_project_key)
+
+    # If no default project key is set, use the first project
+    if not current_project_key and projects:
+        current_project_key = projects[0].get("key")
+
+    json_flags = get_json_flags(current_project_key) if current_project_key else []
     return templates.TemplateResponse(
         request,
         "dashboard.html",

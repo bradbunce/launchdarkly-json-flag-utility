@@ -70,7 +70,6 @@ cp .env.example .env
 | Variable | Description |
 |----------|-------------|
 | `LD_API_KEY` | LaunchDarkly API key (for flag management) |
-| `LD_PROJECT_KEY` | Default LaunchDarkly project key (web UI allows switching) |
 
 ### Required for Web UI AI Features
 
@@ -82,6 +81,7 @@ cp .env.example .env
 
 | Variable | Description |
 |----------|-------------|
+| `LD_PROJECT_KEY` | Default project key (web UI has a selector, CLI will prompt if not set) |
 | `AWS_REGION` | AWS region override (defaults to AWS CLI profile region) |
 | `AWS_ACCESS_KEY_ID` | AWS access key (if not using AWS CLI profile) |
 | `AWS_SECRET_ACCESS_KEY` | AWS secret key (if not using AWS CLI profile) |
