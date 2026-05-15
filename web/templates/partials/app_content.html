@@ -12,9 +12,11 @@
         <span id="project-spinner" class="htmx-indicator">Loading...</span>
     </div>
 
+    {% if flags %}
     <button hx-post="/validate" hx-target="#flag-list" hx-swap="innerHTML" class="btn btn-primary">
         🔄 Refresh & Validate
     </button>
+    {% endif %}
 </div>
 
 <div id="flag-list">
