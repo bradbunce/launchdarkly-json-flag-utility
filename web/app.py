@@ -104,7 +104,17 @@ def inference_config_from_params(params):
 
 @app.get("/", response_class=HTMLResponse)
 async def dashboard(request: Request):
-    """Main dashboard showing all JSON flags and their validation status."""
+    """Main dashboard — renders immediately with a loading state."""
+    return templates.TemplateResponse(
+        request,
+        "dashboard.html",
+        {},
+    )
+
+
+@app.get("/load", response_class=HTMLResponse)
+async def load_app(request: Request):
+    """Load projects and flags asynchronously after the page renders."""
     global current_project_key
     projects = flag_client.get_projects()
 
@@ -115,7 +125,7 @@ async def dashboard(request: Request):
     json_flags = get_json_flags(current_project_key) if current_project_key else []
     return templates.TemplateResponse(
         request,
-        "dashboard.html",
+        "partials/app_content.html",
         {
             "flags": json_flags,
             "project_key": current_project_key,

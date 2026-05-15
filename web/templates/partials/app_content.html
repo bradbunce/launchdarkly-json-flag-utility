@@ -1,0 +1,22 @@
+<div class="toolbar">
+    <div class="project-selector">
+        <label for="project-select">Project:</label>
+        <select id="project-select" name="project_key" hx-post="/switch-project" hx-target="#flag-list"
+            hx-swap="innerHTML" hx-indicator="#project-spinner">
+            {% for project in projects %}
+            <option value="{{ project.key }}" {{ 'selected' if project.key==project_key else '' }}>
+                {{ project.name }} ({{ project.key }})
+            </option>
+            {% endfor %}
+        </select>
+        <span id="project-spinner" class="htmx-indicator">Loading...</span>
+    </div>
+
+    <button hx-post="/validate" hx-target="#flag-list" hx-swap="innerHTML" class="btn btn-primary">
+        🔄 Refresh & Validate
+    </button>
+</div>
+
+<div id="flag-list">
+    {% include "partials/flag_list.html" %}
+</div>

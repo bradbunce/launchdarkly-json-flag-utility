@@ -296,3 +296,33 @@ main {
     justify-content: space-between;
     align-items: center;
 }
+
+
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    color: #a0a0b0;
+}
+
+.loading-state p {
+    margin-top: 1rem;
+    font-size: 1rem;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #0f3460;
+    border-top-color: #405cf5;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
