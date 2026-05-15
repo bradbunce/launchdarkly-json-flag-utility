@@ -1,7 +1,7 @@
 <div class="toolbar">
     <div class="project-selector">
         <label for="project-select">Project:</label>
-        <select id="project-select" name="project_key" hx-post="/switch-project" hx-target="#flag-list"
+        <select id="project-select" name="project_key" hx-post="/switch-project" hx-target="#app-container"
             hx-swap="innerHTML" hx-indicator="#project-spinner">
             {% for project in projects %}
             <option value="{{ project.key }}" {{ 'selected' if project.key==project_key else '' }}>

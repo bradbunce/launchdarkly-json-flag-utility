@@ -141,11 +141,16 @@ async def switch_project(request: Request):
     form = await request.form()
     new_project = form.get("project_key", current_project_key)
     current_project_key = new_project
+    projects = flag_client.get_projects()
     json_flags = get_json_flags(current_project_key)
     return templates.TemplateResponse(
         request,
-        "partials/flag_list.html",
-        {"flags": json_flags},
+        "partials/app_content.html",
+        {
+            "flags": json_flags,
+            "project_key": current_project_key,
+            "projects": projects,
+        },
     )
 
 
