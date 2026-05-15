@@ -326,3 +326,8 @@ main {
         transform: rotate(360deg);
     }
 }
+
+
+.toolbar-center {
+    justify-content: center;
+}

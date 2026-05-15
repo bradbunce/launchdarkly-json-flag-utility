@@ -1,4 +1,4 @@
-<div class="toolbar">
+<div class="toolbar {{ 'toolbar-center' if not flags else '' }}">
     <div class="project-selector">
         <label for="project-select">Project:</label>
         <select id="project-select" name="project_key" hx-post="/switch-project" hx-target="#app-container"
